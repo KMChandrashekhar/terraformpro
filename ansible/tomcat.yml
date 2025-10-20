@@ -1,0 +1,35 @@
+---
+- name: Install Tomcat 10 and deploy WAR
+  hosts: app
+  become: yes
+  vars:
+    tomcat_version: 10.1.33
+    tomcat_install_dir: /opt/tomcat
+  tasks:
+    - name: Install dependencies
+      apt:
+        name:
+          - openjdk-21-jdk
+          - wget
+          - unzip
+        state: present
+        update_cache: yes
+
+    - name: Create Tomcat directory
+      file:
+        path: "{{ tomcat_install_dir }}"
+        state: directory
+
+    - name: Download Tomcat
+      get_url:
+        url: "https://dlcdn.apache.org/tomcat/tomcat-10/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+        dest: /tmp/tomcat.tar.gz
+
+    - name: Extract Tomcat
+      unarchive:
+        src: /tmp/tomcat.tar.gz
+        dest: "{{ tomcat_install_dir }}"
+        remote_src: yes
+
+    - name: Start Tomcat
+      shell: "nohup {{ tomcat_install_dir }}/apache-tomcat-{{ tomcat_version }}/bin/startup.sh &"

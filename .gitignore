@@ -1,0 +1,25 @@
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# AWS credentials / keys
+*.pem
+*.key
+*.crt
+
+# Maven
+target/
+*.class
+*.jar
+*.war
+
+# Jenkins workspace
+.jenkins/
+
+# System files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
