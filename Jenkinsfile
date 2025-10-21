@@ -30,6 +30,7 @@ pipeline {
 
         stage('Deploy via Ansible') {
             steps {
+<<<<<<< HEAD
                 // Run the Ansible playbook from Jenkins
                 ansiblePlaybook(
                     playbook: 'ansible/deploy-tomcat.yml',
@@ -40,6 +41,19 @@ pipeline {
                         tomcat_password: "${TOMCAT_PASSWORD}"
                     ]
                 )
+=======
+                script {
+                    // Path to generated WAR file
+                    def warFile = 'target/java-webapp.war'
+                    
+                    // Deploy using Tomcat manager
+                    sh """
+                        curl -u $TOMCAT_USER:$TOMCAT_PASSWORD \
+                        -T $warFile \
+                        "$TOMCAT_URL/deploy?path=/myapp&update=true"
+                    """
+                }
+>>>>>>> defdc0a0aff634112f7d80f594334bb6a1f68b96
             }
         }
     }
