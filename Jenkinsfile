@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     // Path to generated WAR file
-                    def warFile = 'target/kmcdevops-java-webapp-devops.war'
+                    def warFile = 'target/java-webapp.war'
                     
                     // Deploy using Tomcat manager
                     sh """
