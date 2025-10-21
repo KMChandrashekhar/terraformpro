@@ -1,5 +1,5 @@
 variable "aws_region" {
-  default = "ap-south-1"   # your region
+  default = "ap-south-1"
 }
 
 variable "jenkins_instance_type" {
@@ -12,7 +12,7 @@ variable "app_instance_type" {
 
 variable "key_name" {
   description = "Name of your AWS key pair"
-  default     = "your-key-name"   # <-- change this
+  default     = "jenkin-tomcat"
 }
 
 variable "owner" {
