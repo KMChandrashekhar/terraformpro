@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     tools {
-        git 'Default'      // Git tool name in Global Tool Configuration
-        maven 'Maven3'     // Maven tool name in Global Tool Configuration
+        git 'Default'      // Git tool in Jenkins Global Tool Configuration
+        maven 'Maven3'     // Maven tool in Jenkins Global Tool Configuration
     }
 
     environment {
-        TOMCAT_URL = 'http://localhost:8080/manager/text'
-        TOMCAT_USER = 'admin'       // Replace with your Tomcat manager username
-        TOMCAT_PASSWORD = 'password' // Replace with your Tomcat manager password
+        APP_SERVER = '<app_public_ip>'   // Replace with Terraform output app_public_ip
+        TOMCAT_USER = 'admin'            // Tomcat manager username
+        TOMCAT_PASSWORD = 'password'     // Tomcat manager password
+        WAR_FILE = 'target/java-webapp.war'
     }
 
     stages {
@@ -27,19 +28,18 @@ pipeline {
             }
         }
 
-        stage('Deploy to Tomcat') {
+        stage('Deploy via Ansible') {
             steps {
-                script {
-                    // Path to generated WAR file
-                    def warFile = 'target/kmcdevops-java-webapp-devops.war'
-                    
-                    // Deploy using Tomcat manager
-                    sh """
-                        curl -u $TOMCAT_USER:$TOMCAT_PASSWORD \
-                        -T $warFile \
-                        "$TOMCAT_URL/deploy?path=/myapp&update=true"
-                    """
-                }
+                // Run the Ansible playbook from Jenkins
+                ansiblePlaybook(
+                    playbook: 'ansible/deploy-tomcat.yml',
+                    inventory: "${APP_SERVER},",
+                    extraVars: [
+                        war_source: "${env.WAR_FILE}",
+                        tomcat_user: "${TOMCAT_USER}",
+                        tomcat_password: "${TOMCAT_PASSWORD}"
+                    ]
+                )
             }
         }
     }
@@ -53,4 +53,3 @@ pipeline {
         }
     }
 }
-

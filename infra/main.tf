@@ -145,8 +145,8 @@ resource "aws_instance" "app" {
               # Install Tomcat
               cd /opt
               wget https://downloads.apache.org/tomcat/tomcat-10/v10.1.30/bin/apache-tomcat-10.1.30.tar.gz
-              tar -xvzf apache-tomcat-10.1.30.tar.gz
-              mv apache-tomcat-10.1.30 tomcat
+              tar -xvzf apache-tomcat-10.1.33.tar.gz
+              mv apache-tomcat-10.1.33 tomcat
               chmod +x tomcat/bin/*.sh
               sh tomcat/bin/startup.sh
               EOF

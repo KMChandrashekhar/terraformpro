@@ -1,10 +1,12 @@
 ---
-- name: Install Tomcat 10 and deploy WAR
-  hosts: app
+- name: Deploy WAR to Tomcat
+  hosts: all
   become: yes
   vars:
-    tomcat_version: 10.1.33
     tomcat_install_dir: /opt/tomcat
+    tomcat_version: 10.1.33
+    war_dest_name: myapp.war
+
   tasks:
     - name: Install dependencies
       apt:
@@ -20,16 +22,31 @@
         path: "{{ tomcat_install_dir }}"
         state: directory
 
-    - name: Download Tomcat
+    - name: Download Tomcat if not exists
       get_url:
         url: "https://dlcdn.apache.org/tomcat/tomcat-10/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
         dest: /tmp/tomcat.tar.gz
+      register: download_tomcat
+      until: download_tomcat is succeeded
+      retries: 3
+      delay: 10
 
     - name: Extract Tomcat
       unarchive:
         src: /tmp/tomcat.tar.gz
         dest: "{{ tomcat_install_dir }}"
         remote_src: yes
+      when: not ansible_facts['files'].get(tomcat_install_dir + '/apache-tomcat-' + tomcat_version)
 
-    - name: Start Tomcat
-      shell: "nohup {{ tomcat_install_dir }}/apache-tomcat-{{ tomcat_version }}/bin/startup.sh &"
+    - name: Copy WAR file to Tomcat webapps
+      copy:
+        src: "{{ war_source }}"
+        dest: "{{ tomcat_install_dir }}/apache-tomcat-{{ tomcat_version }}/webapps/{{ war_dest_name }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Restart Tomcat
+      shell: >
+        {{ tomcat_install_dir }}/apache-tomcat-{{ tomcat_version }}/bin/shutdown.sh || true &&
+        {{ tomcat_install_dir }}/apache-tomcat-{{ tomcat_version }}/bin/startup.sh
