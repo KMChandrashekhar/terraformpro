@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-username/my-java-app.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Terraform Init & Apply') {
+            steps {
+                dir('Terraform') {
+                    sh 'terraform init'
+                    sh 'terraform apply -auto-approve -var aws_access_key=$AWS_ACCESS_KEY_ID -var aws_secret_key=$AWS_SECRET_ACCESS_KEY'
+                }
+            }
+        }
+
+        stage('Ansible Deploy') {
+            steps {
+                script {
+                    def instance_ip = sh(script: "terraform -chdir=Terraform output -raw instance_ip", returnStdout: true).trim()
+                    sh """
+                    ansible-playbook -i ${instance_ip}, Ansible/install_tomcat.yml --private-key ~/.ssh/jenkin-tomcat.pem -u ubuntu
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Application deployed successfully! Access Tomcat at http://${instance_ip}:8080'
+        }
+        failure {
+            echo 'Deployment failed.'
+        }
+    }
+}
