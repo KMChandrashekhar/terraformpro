@@ -1,3 +1,4 @@
+# This File ignores the sensitive data and big folders/files which is not required for project
 # Terraform
 .terraform/
 terraform.tfstate
